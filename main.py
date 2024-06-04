@@ -12,13 +12,16 @@ if __name__ == "__main__":
     odoo = Odoo(url, db, username, api_key)
 
     # Prompt the user for input
-    user_name = input("Please enter the Odoo username (ex. chno@odoo.com): ")
+    user_name = input("Please enter the Odoo gram (ex. chno): ")
+    full_username = f"{user_name}@odoo.com"
     project_name = input("Please enter the project name (ex. Help): ")
+    year = input("What year would you like to search for (ex. 24)? ")
+    month = int(input("What month would you like to search for (ex. 06)? "))
 
     # Search for the user ID by login
-    user_data = odoo.searchRead('res.users', [('login', '=', user_name)], {'fields': ['id']})
+    user_data = odoo.searchRead('res.users', [('login', '=', full_username)], {'fields': ['id']})
     if not user_data:
-        print(f'User {user_name} not found.')
+        print(f'User {full_username} not found.')
         exit()
     user_id = user_data[0]['id']
 
@@ -29,10 +32,10 @@ if __name__ == "__main__":
         exit()
     project_id = project_data[0]['id']
 
-    # Search for tasks assigned to the user within the project
     tasks = odoo.searchRead('project.task', [
         ('project_id', '=', project_id),
-        ('user_ids', 'in', user_id)
+        ('user_ids', 'in', user_id),
+        ("date_assign", ">=", f"20{year}-{month}-01 00:00:00"), ("date_assign", "<=", f"20{year}-{int(month) + 1}-01 00:00:00")
     ], {'fields': ['id']})
 
     print(f'Number of tasks assigned to {user_name} in project {project_name}: {len(tasks)}')
